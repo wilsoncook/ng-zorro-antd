@@ -8,7 +8,8 @@ import {
   forwardRef
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import * as moment from 'moment';
+// import * as moment from 'moment';
+import { DatetimeService } from '../core/datetime';
 import { DropDownAnimation } from '../core/animation/dropdown-animations';
 
 export interface TimeUnitInterface {
@@ -122,9 +123,9 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
   _minuteList: Array<TimeUnitInterface> = [];
   _secondList: Array<TimeUnitInterface> = [];
   _value = null;
-  _selectedHour = moment(this._now).hours();
-  _selectedMinute = moment(this._now).minutes();
-  _selectedSecond = moment(this._now).seconds();
+  _selectedHour = this._datetimeService.moment(this._now).hours();
+  _selectedMinute = this._datetimeService.moment(this._now).minutes();
+  _selectedSecond = this._datetimeService.moment(this._now).seconds();
   _format = 'HH:mm:ss';
   _showHour = this._format.indexOf('HH') > -1;
   _showMinute = this._format.indexOf('mm') > -1;
@@ -178,6 +179,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
   };
 
   set nzValue(value: Date) {
+    const moment = this._datetimeService.moment;
     if (this._value === value) {
       return;
     }
@@ -220,7 +222,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
     }
     this._scrollToSelected(instance, index, 120, 'hour');
     this._selectedHour = index;
-    this.nzValue = moment(this.nzValue).hour(index).toDate();
+    this.nzValue = this._datetimeService.moment(this.nzValue).hour(index).toDate();
     this.onChange(this._value);
     this._buildMinutes();
     this._buildSeconds();
@@ -232,7 +234,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
     }
     this._scrollToSelected(instance, index, 120, 'minute');
     this._selectedMinute = index;
-    this.nzValue = moment(this.nzValue).minute(index).toDate();
+    this.nzValue = this._datetimeService.moment(this.nzValue).minute(index).toDate();
     this.onChange(this._value);
     this._buildSeconds();
   }
@@ -243,7 +245,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
     }
     this._scrollToSelected(instance, index, 120, 'second');
     this._selectedSecond = index;
-    this.nzValue = moment(this.nzValue).second(index).toDate();
+    this.nzValue = this._datetimeService.moment(this.nzValue).second(index).toDate();
     this.onChange(this._value);
   }
 
@@ -274,6 +276,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
   }
 
   _initPosition() {
+    const moment = this._datetimeService.moment;
     this._selectedHour = moment(this.nzValue).hours();
     this._selectedMinute = moment(this.nzValue).minutes();
     this._selectedSecond = moment(this.nzValue).seconds();
@@ -339,7 +342,7 @@ export class NzTimePickerInnerComponent implements OnInit, ControlValueAccessor 
     this.onTouched = fn;
   }
 
-  constructor(public _cdr: ChangeDetectorRef) {
+  constructor(public _cdr: ChangeDetectorRef, protected _datetimeService: DatetimeService) {
   }
 
   ngOnInit() {

@@ -8,7 +8,8 @@ import {
   ViewChild,
   HostBinding, OnInit
 } from '@angular/core';
-import * as moment from 'moment';
+// import * as moment from 'moment';
+import { DatetimeService } from '../core/datetime';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { DropDownAnimation } from '../core/animation/dropdown-animations';
 import { NzTimePickerInnerComponent } from '../time-picker/nz-timepicker-inner.component';
@@ -188,11 +189,11 @@ export class NzDatePickerComponent implements ControlValueAccessor, OnInit {
   _triggerWidth = 0;
   _value = null;
   _today = new Date();
-  _selectedMonth = moment(this.nzValue).month();
-  _selectedYear = moment(this.nzValue).year();
-  _selectedDate = moment(this.nzValue).date();
-  _showMonth = moment(new Date()).month();
-  _showYear = moment(new Date()).year();
+  _selectedMonth = this._datetimeService.moment(this.nzValue).month();
+  _selectedYear = this._datetimeService.moment(this.nzValue).year();
+  _selectedDate = this._datetimeService.moment(this.nzValue).date();
+  _showMonth = this._datetimeService.moment(new Date()).month();
+  _showYear = this._datetimeService.moment(new Date()).year();
   _startDecade = Math.floor(this._showYear / 10) * 10;
   _yearPanel: Array<Array<string>> = [];
   _positions: ConnectionPositionPair[] = [ ...DEFAULT_DATEPICKER_POSITIONS ];
@@ -228,6 +229,7 @@ export class NzDatePickerComponent implements ControlValueAccessor, OnInit {
   };
 
   set nzValue(value: Date) {
+    const moment = this._datetimeService.moment;
     if (this._value === value) {
       return;
     }
@@ -310,7 +312,7 @@ export class NzDatePickerComponent implements ControlValueAccessor, OnInit {
       this.nzValue = day.date.toDate();
       this.onChange(this._value);
     } else {
-      this.nzValue = moment(this.nzValue).year(day.date.year()).month(day.date.month()).date(day.date.date()).toDate();
+      this.nzValue = this._datetimeService.moment(this.nzValue).year(day.date.year()).month(day.date.month()).date(day.date.date()).toDate();
       this.onChange(this._value);
     }
 
@@ -381,7 +383,7 @@ export class NzDatePickerComponent implements ControlValueAccessor, OnInit {
     this._yearPanel[ 3 ].push('end');
   }
 
-  constructor(private _elementRef: ElementRef, private _cdr: ChangeDetectorRef) {
+  constructor(private _elementRef: ElementRef, private _cdr: ChangeDetectorRef, private _datetimeService: DatetimeService) {
     this._el = this._elementRef.nativeElement;
   }
 

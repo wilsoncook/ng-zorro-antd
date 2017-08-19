@@ -10,9 +10,10 @@ import {
   EventEmitter, HostBinding
 } from '@angular/core';
 
-import * as moment from 'moment';
-import { Moment } from 'moment';
-import 'moment/locale/zh-cn';
+// import * as moment from 'moment';
+// import { Moment } from 'moment';
+// import 'moment/locale/zh-cn';
+import { DatetimeService, Moment } from '../core/datetime';
 
 export interface MonthInterface {
   index: number;
@@ -203,8 +204,8 @@ export class NzCalendarComponent implements OnInit {
   _listOfYearName: Array<string> = [];
   _yearUnit = '年';
   _monthUnit = '月';
-  _showMonth = moment(new Date()).month();
-  _showYear = moment(new Date()).year();
+  _showMonth = this._datetimeService.moment(new Date()).month();
+  _showYear = this._datetimeService.moment(new Date()).year();
   _value: Date = new Date();
   _locale = 'zh-cn';
   @ContentChild('dateCell') dateCell: TemplateRef<any>;
@@ -229,8 +230,8 @@ export class NzCalendarComponent implements OnInit {
       return;
     }
     this._value = value || new Date();
-    this._showMonth = moment(this._value).month();
-    this._showYear = moment(this._value).year();
+    this._showMonth = this._datetimeService.moment(this._value).month();
+    this._showYear = this._datetimeService.moment(this._value).year();
     this._buildCalendar();
   }
 
@@ -261,7 +262,7 @@ export class NzCalendarComponent implements OnInit {
 
   set nzLocale(value: string) {
     this._locale = value;
-    moment.locale(this._locale);
+    this._datetimeService.moment.locale(this._locale);
   }
 
   _removeTime(date) {
@@ -333,7 +334,7 @@ export class NzCalendarComponent implements OnInit {
       months.push({
         index          : i,
         name           : this._listOfMonthName[ i ],
-        isCurrentMonth : moment(new Date()).month() === i && date.isSame(new Date(), 'year'),
+        isCurrentMonth : this._datetimeService.moment(new Date()).month() === i && date.isSame(new Date(), 'year'),
         isSelectedMonth: this._showMonth === i
       });
       if ((i + 1) % 3 === 0) {
@@ -345,6 +346,7 @@ export class NzCalendarComponent implements OnInit {
   };
 
   _buildCalendar() {
+    const moment = this._datetimeService.moment;
     moment.locale(this._locale);
     /** TODO replace with real i18n*/
     if (this._locale !== 'zh-cn') {
@@ -370,7 +372,7 @@ export class NzCalendarComponent implements OnInit {
     return listOfYears;
   };
 
-  constructor(private _elementRef: ElementRef) {
+  constructor(private _elementRef: ElementRef, private _datetimeService: DatetimeService) {
     this._el = this._elementRef.nativeElement;
   }
 

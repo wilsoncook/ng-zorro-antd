@@ -4,9 +4,10 @@ import { NzTimePickerInnerComponent } from './nz-timepicker-inner.component';
 import { CommonModule } from '@angular/common';
 import { NzUtilModule } from '../util/nz-util.module';
 import { OverlayModule } from '../core/overlay';
+import { DatetimeModule } from '../core/datetime';
 
 @NgModule({
-  imports     : [ CommonModule, NzUtilModule, OverlayModule ],
+  imports     : [ CommonModule, NzUtilModule, OverlayModule, DatetimeModule ],
   declarations: [ NzTimePickerComponent, NzTimePickerInnerComponent ],
   exports     : [ NzTimePickerComponent, NzTimePickerInnerComponent ]
 })

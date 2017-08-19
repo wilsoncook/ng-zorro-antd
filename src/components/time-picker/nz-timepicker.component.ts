@@ -2,10 +2,12 @@ import {
   Component,
   ViewEncapsulation,
   forwardRef,
-  ViewChild
+  ViewChild,
+  ChangeDetectorRef
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import * as moment from 'moment';
+// import * as moment from 'moment';
+import { DatetimeService } from '../core/datetime';
 import { DropDownAnimation } from '../core/animation/dropdown-animations';
 import { NzTimePickerInnerComponent } from './nz-timepicker-inner.component';
 import { DEFAULT_DATEPICKER_POSITIONS } from '../core/overlay/overlay-position-map';
@@ -143,6 +145,10 @@ export class NzTimePickerComponent extends NzTimePickerInnerComponent {
 
   @ViewChild('trigger') trigger;
 
+  constructor(changeDetectorRef: ChangeDetectorRef, datetimeService: DatetimeService) {
+    super(changeDetectorRef, datetimeService);
+  }
+
   _setTriggerWidth(): void {
     this._triggerWidth = this.trigger.nativeElement.getBoundingClientRect().width;
   }
@@ -156,6 +162,7 @@ export class NzTimePickerComponent extends NzTimePickerInnerComponent {
   }
 
   _manualChangeInput(box) {
+    const moment = this._datetimeService.moment;
     const _tempMoment = moment(box.value, this._format);
     if (Date.parse(_tempMoment.toDate().toString())) {
       this.nzValue = new Date((moment(this._value).hour(_tempMoment.hour()).minute(_tempMoment.minute()).second(_tempMoment.second())).toDate().getTime());

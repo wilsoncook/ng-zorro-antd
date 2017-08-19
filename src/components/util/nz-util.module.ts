@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { NzDatePipe } from './nz-date.pipe';
+import { DatetimeModule } from '../core/datetime';
 
 @NgModule({
   declarations: [ NzDatePipe ],
-  exports     : [ NzDatePipe ]
+  imports: [ DatetimeModule ],
+  exports: [ NzDatePipe ]
 })
 
 export class NzUtilModule {
