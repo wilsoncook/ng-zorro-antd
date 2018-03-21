@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { ApplicationRef, ComponentFactoryResolver, ComponentRef, EventEmitter, Injectable, Injector, Optional, SkipSelf, TemplateRef, Type } from '@angular/core';
+import { ApplicationRef, ComponentFactoryResolver, ComponentRef, EventEmitter, Injectable, Injector, Optional, SkipSelf, TemplateRef, Type, EmbeddedViewRef } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { LoggerService } from '../core/util/logger/logger.service';
@@ -15,7 +15,13 @@ export class ModalBuilderForService {
   private modalRef: ComponentRef<NzModalComponent>; // Modal ComponentRef, "null" means it has been destroyed
   private overlayRef: OverlayRef;
 
-  constructor(private overlay: Overlay, options: ModalOptionsForService = {}) {
+  constructor(
+    private overlay: Overlay,
+    private cfr: ComponentFactoryResolver,
+    private injector: Injector,
+    private appRef: ApplicationRef,
+    options: ModalOptionsForService = {}) {
+
     this.createModal();
 
     if (!('nzGetContainer' in options)) { // As we use CDK to create modal in service by force, there is no need to use nzGetContainer
@@ -33,6 +39,11 @@ export class ModalBuilderForService {
 
   destroyModal(): void {
     if (this.modalRef) {
+      // this.overlayRef.dispose();
+
+      // Here we need destroy every resource manually due to manual creating
+      this.appRef.detachView(this.modalRef.hostView);
+      this.modalRef.destroy();
       this.overlayRef.dispose();
       this.modalRef = null;
     }
@@ -46,8 +57,19 @@ export class ModalBuilderForService {
 
   // Create component to ApplicationRef
   private createModal(): void {
+    // this.overlayRef = this.overlay.create();
+    // this.modalRef = this.overlayRef.attach(new ComponentPortal(NzModalComponent));
+
+    // Manual creating Modal and its overlay to avoid multi change detection, see: https://github.com/angular/angular/issues/15634
+    const factory = this.cfr.resolveComponentFactory(NzModalComponent);
+    this.modalRef = factory.create(this.injector);
+
+    // NOTE: the overlay is only used as a global container that holds the DOM
     this.overlayRef = this.overlay.create();
-    this.modalRef = this.overlayRef.attach(new ComponentPortal(NzModalComponent));
+    this.overlayRef.overlayElement.appendChild((this.modalRef.hostView as EmbeddedViewRef<{}>).rootNodes[0] as HTMLElement);
+
+    // Temporary solution: next tick to do change detection to avoid creating during a change detection
+    window.setTimeout(() => this.appRef.attachView(this.modalRef.hostView));
   }
 }
 
@@ -64,6 +86,9 @@ export class NzModalService {
 
   constructor(
     private overlay: Overlay,
+    private cfr: ComponentFactoryResolver,
+    private injector: Injector,
+    private appRef: ApplicationRef,
     private logger: LoggerService,
     private modalControl: NzModalControlService) { }
 
@@ -77,7 +102,7 @@ export class NzModalService {
       options.nzOnCancel = () => {}; // Leave a empty function to close this modal by default
     }
 
-    const modalRef = new ModalBuilderForService(this.overlay, options).getInstance(); // NOTE: use NzModalComponent as the NzModalRef by now, we may need archive the real NzModalRef object in the future
+    const modalRef = new ModalBuilderForService(this.overlay, this.cfr, this.injector, this.appRef, options).getInstance(); // NOTE: use NzModalComponent as the NzModalRef by now, we may need archive the real NzModalRef object in the future
 
     return modalRef;
   }

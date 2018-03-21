@@ -1,7 +1,7 @@
 /* entryComponents: NzModalCustomComponent */
 
 import { Component, Input, TemplateRef, ViewChild } from '@angular/core';
-import { NzModalRef, NzModalService } from 'ng-zorro-antd';
+import { NzModalRef, NzModalService, NzNotificationService } from 'ng-zorro-antd';
 
 @Component({
   selector: 'nz-demo-modal-service',
@@ -171,15 +171,34 @@ export class NzDemoModalServiceComponent {
         <button nz-button [nzType]="'primary'" (click)="destroyModal()">destroy modal in the component</button>
       </p>
     </div>
+    <br>
+    <div>
+      <h4>Modal with other components</h4>
+      <p>
+        <nz-select style="width:140px;" nzAllowClear nzPlaceHolder="Choose">
+          <nz-option nzValue="jack" nzLabel="Jack"></nz-option>
+          <nz-option nzValue="lucy" nzLabel="Lucy"></nz-option>
+        </nz-select>
+        <nz-popover [nzTitle]="'Title'">
+          <button nz-button [nzType]="'primary'" nz-popover>Hover popover</button>
+          <ng-template #nzTemplate><b>Content</b></ng-template>
+        </nz-popover>
+        <button nz-button [nzType]="'primary'" (click)="createNotification()">Open a notification</button>
+      </p>
+    </div>
   `
 })
 export class NzModalCustomComponent {
   @Input() title: string;
   @Input() subtitle: string;
 
-  constructor(private modal: NzModalRef) { }
+  constructor(private modal: NzModalRef, private notification: NzNotificationService) { }
 
   destroyModal(): void {
     this.modal.destroy({ data: 'this the result data' });
+  }
+
+  createNotification(): void {
+    this.notification.success('title', 'content');
   }
 }
