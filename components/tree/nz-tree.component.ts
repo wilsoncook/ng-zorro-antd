@@ -1,4 +1,5 @@
-import { Component, ContentChild, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { forwardRef, Component, ContentChild, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 
 import { NzFormatBeforeDropEvent, NzFormatEmitEvent } from './interface';
@@ -12,7 +13,7 @@ import { NzTreeService } from './nz-tree.service';
       class="ant-tree"
       [ngClass]="classMap"
       role="tree-node" unselectable="on">
-      <nz-tree-node *ngFor="let node of nzTreeData" [nzTreeNode]="node"
+      <nz-tree-node *ngFor="let node of ngModelNodes" [nzTreeNode]="node"
                     [nzShowLine]="nzShowLine"
                     [nzTreeTemplate]="nzTreeTemplate"
                     [nzShowExpand]="nzShowExpand"
@@ -22,6 +23,7 @@ import { NzTreeService } from './nz-tree.service';
                     [nzDraggable]="nzDraggable"
                     [nzCheckable]="nzCheckable"
                     [nzBeforeDrop]="nzBeforeDrop"
+                    [nzCheckStrictly]="nzCheckStrictly"
                     [nzDefaultExpandAll]="nzDefaultExpandAll"
                     [nzDefaultCheckedKeys]="nzDefaultCheckedKeys"
                     [nzDefaultExpandedKeys]="nzDefaultExpandedKeys"
@@ -41,7 +43,12 @@ import { NzTreeService } from './nz-tree.service';
     </ul>
   `,
   providers: [
-    NzTreeService
+    NzTreeService,
+    {
+      provide    : NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => NzTreeComponent),
+      multi      : true
+    }
   ]
 })
 export class NzTreeComponent implements OnInit {
@@ -54,18 +61,19 @@ export class NzTreeComponent implements OnInit {
     [this._prefixCls + '-show-line']: false,
     ['draggable-tree']              : false
   };
-
+  ngModelNodes: NzTreeNode[] = [];
   @ContentChild('nzTreeTemplate') nzTreeTemplate: TemplateRef<{}>;
 
+  @Input() nzCheckStrictly: boolean = false;
   @Input() nzCheckable;
   @Input() nzShowExpand: boolean = true;
   @Input() nzAsyncData: boolean = false;
   @Input() nzDraggable;
   @Input() nzMultiple;
   @Input() nzDefaultExpandAll: boolean = false;
-  @Input() nzDefaultCheckedKeys: string[];
-  @Input() nzDefaultExpandedKeys: string[];
-  @Input() nzDefaultSelectedKeys: string[];
+  @Input() nzDefaultCheckedKeys: string[] = [];
+  @Input() nzDefaultExpandedKeys: string[] = [];
+  @Input() nzDefaultSelectedKeys: string[] = [];
   @Input() nzBeforeDrop: (confirm: NzFormatBeforeDropEvent) => Observable<boolean>;
 
   @Input()
@@ -76,17 +84,6 @@ export class NzTreeComponent implements OnInit {
 
   get nzShowLine(): boolean {
     return this._showLine;
-  }
-
-  @Input()
-  // tslint:disable-next-line:no-any
-  set nzTreeData(value: any[]) {
-    this._root = this.nzTreeService.initTreeNodes(value);
-  }
-
-  // tslint:disable-next-line:no-any
-  get nzTreeData(): any[] {
-    return this._root;
   }
 
   @Input()
@@ -116,6 +113,9 @@ export class NzTreeComponent implements OnInit {
   @Output() nzOnDrop: EventEmitter<NzFormatEmitEvent> = new EventEmitter();
   @Output() nzOnDragEnd: EventEmitter<NzFormatEmitEvent> = new EventEmitter();
 
+  onChange: (value: NzTreeNode[]) => void = () => null;
+  onTouched: () => void = () => null;
+
   setClassMap(): void {
     this.classMap = {
       [ this._prefixCls ]             : true,
@@ -124,7 +124,36 @@ export class NzTreeComponent implements OnInit {
     };
   }
 
-  constructor(private nzTreeService: NzTreeService) {
+  /**
+   * public function
+   * @returns {NzTreeNode[]}
+   */
+  getCheckedNodeList(): NzTreeNode[] {
+    return this.nzTreeService.getCheckedNodeList();
+  }
+
+  getSelectedNodeList(): NzTreeNode[] {
+    return this.nzTreeService.getSelectedNodeList();
+  }
+
+  // ngModel
+  writeValue(value: NzTreeNode[]): void {
+    if (value) {
+      this.ngModelNodes = value;
+      this.nzTreeService.initTreeNodes(this.ngModelNodes, this.nzDefaultCheckedKeys, this.nzCheckStrictly);
+      this.onChange(value);
+    }
+  }
+
+  registerOnChange(fn: (_: NzTreeNode[]) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  constructor(public nzTreeService: NzTreeService) {
   }
 
   ngOnInit(): void {

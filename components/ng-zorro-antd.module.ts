@@ -14,6 +14,8 @@ import { NzCarouselModule } from './carousel/nz-carousel.module';
 import { NzCascaderModule } from './cascader/nz-cascader.module';
 import { NzCheckboxModule } from './checkbox/nz-checkbox.module';
 import { NzCollapseModule } from './collapse/nz-collapse.module';
+import { NzMeasureScrollbarService } from './core/services/nz-measure-scrollbar.service';
+import { NzDatePickerModule } from './date-picker/date-picker.module';
 import { NzDividerModule } from './divider/nz-divider.module';
 import { NzDropDownModule } from './dropdown/nz-dropdown.module';
 import { NzDropdownService } from './dropdown/nz-dropdown.service';
@@ -24,6 +26,7 @@ import { NzInputNumberModule } from './input-number/nz-input-number.module';
 import { NzInputModule } from './input/nz-input.module';
 import { NzLayoutModule } from './layout/nz-layout.module';
 import { NzListModule } from './list/nz-list.module';
+import { NzMentionModule } from './mention/mention.module';
 import { NzMenuModule } from './menu/nz-menu.module';
 import { NzMessageModule } from './message/nz-message.module';
 import { NzMessageService } from './message/nz-message.service';
@@ -44,6 +47,7 @@ import { NzSwitchModule } from './switch/nz-switch.module';
 import { NzTableModule } from './table/nz-table.module';
 import { NzTabsModule } from './tabs/nz-tabs.module';
 import { NzTagModule } from './tag/nz-tag.module';
+import { NzTimePickerModule } from './time-picker/nz-time-picker.module';
 import { NzTimelineModule } from './timeline/nz-timeline.module';
 import { NzToolTipModule } from './tooltip/nz-tooltip.module';
 import { NzTransferModule } from './transfer/nz-transfer.module';
@@ -63,6 +67,7 @@ export * from './card';
 export * from './carousel';
 export * from './checkbox';
 export * from './collapse';
+export * from './date-picker';
 export * from './divider';
 export * from './dropdown';
 export * from './form';
@@ -72,6 +77,7 @@ export * from './input';
 export * from './input-number';
 export * from './layout';
 export * from './list';
+export * from './mention';
 export * from './menu';
 export * from './pagination';
 export * from './progress';
@@ -89,6 +95,7 @@ export * from './upload';
 export * from './tag';
 export * from './auto-complete';
 export * from './message';
+export * from './time-picker';
 export * from './tooltip';
 export * from './slider';
 export * from './popover';
@@ -97,6 +104,7 @@ export * from './popconfirm';
 export * from './modal';
 export * from './cascader';
 export * from './tree';
+export * from './time-picker';
 
 @NgModule({
   exports: [
@@ -106,6 +114,7 @@ export * from './tree';
     NzSwitchModule,
     NzSelectModule,
     NzMenuModule,
+    NzMentionModule,
     NzAnchorModule,
     NzAffixModule,
     NzDropDownModule,
@@ -127,10 +136,12 @@ export * from './tree';
     NzCardModule,
     NzAvatarModule,
     NzTimelineModule,
+    NzTimePickerModule,
     NzTransferModule,
     NzCarouselModule,
     NzCollapseModule,
     NzTableModule,
+    NzDatePickerModule,
     NzDividerModule,
     NzFormModule,
     NzListModule,
@@ -146,7 +157,8 @@ export * from './tree';
     NzModalModule,
     NzBackTopModule,
     NzCascaderModule,
-    NzTreeModule
+    NzTreeModule,
+    NzTimePickerModule
   ]
 })
 export class NgZorroAntdModule {
@@ -158,7 +170,8 @@ export class NgZorroAntdModule {
         // Services
         NzNotificationService,
         NzMessageService,
-        NzDropdownService
+        NzDropdownService,
+        NzMeasureScrollbarService
       ]
     };
   }

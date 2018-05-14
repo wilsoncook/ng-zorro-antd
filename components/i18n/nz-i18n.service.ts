@@ -3,6 +3,8 @@ import { Inject, Injectable, Optional, Provider, SkipSelf } from '@angular/core'
 
 import { LoggerService } from '../core/util/logger/logger.service';
 
+import * as parse from 'date-fns/parse';
+
 import { NzI18nInterface } from './nz-i18n.interface';
 import { NZ_I18N } from './nz-i18n.token';
 
@@ -42,11 +44,47 @@ export class NzI18nService {
     return this._locale;
   }
 
-  formatDate(date: Date, format: string): string {
-    return this.datePipe.transform(date, format, null, this.getLocale().locale);
+  getLocaleId(): string {
+    return this._locale ? this._locale.locale : '';
   }
 
-  private _getObjectPath(obj: object, path: string): string | object {
+  /**
+   * Get locale data
+   * @param path dot paths for finding exist value from locale data, eg. "a.b.c"
+   * @param defaultValue default value if the result is not "truthy"
+   */
+  getLocaleData(path?: string, defaultValue?: any): any { // tslint:disable-line:no-any
+    const result = path ? this._getObjectPath(this._locale, path) : this._locale;
+    return result || defaultValue;
+  }
+
+  formatDate(date: Date, format?: string, locale?: string): string {
+    return date ? this.datePipe.transform(date, format, null, locale || this.getLocale().locale) : '';
+  }
+
+  /**
+   * Format date with compatible for the format of moment and others
+   * Why? For now, we need to support the existing language formats in AntD, and AntD uses the default temporal syntax.
+   */
+  formatDateCompatible(date: Date, format?: string, locale?: string): string {
+    return this.formatDate(date, this.compatDateFormat(format), locale);
+  }
+
+  parseDate(text: string): Date {
+    if (!text) {
+      return;
+    }
+    return parse(text);
+  }
+
+  parseTime(text: string): Date {
+    if (!text) {
+      return;
+    }
+    return parse(`1970-01-01 ${text}`);
+  }
+
+  private _getObjectPath(obj: object, path: string): string | object | any { // tslint:disable-line:no-any
     let res = obj;
     const paths = path.split('.');
     const depth = paths.length;
@@ -55,6 +93,22 @@ export class NzI18nService {
       res = res[ paths[ index++ ] ];
     }
     return index === depth ? res : null;
+  }
+
+  /**
+   * Compatible translate the moment-like format pattern to angular's pattern
+   * Why? For now, we need to support the existing language formats in AntD, and AntD uses the default temporal syntax.
+   *
+   * TODO: compare and complete all format patterns
+   * Each format docs as below:
+   * @link https://momentjs.com/docs/#/displaying/format/
+   * @link https://angular.io/api/common/DatePipe#description
+   * @param format input format pattern
+   */
+  private compatDateFormat(format: string): string {
+    return format && format
+      .replace(/Y/g, 'y') // only support y, yy, yyy, yyyy
+      .replace(/D/g, 'd'); // d, dd represent of D, DD for momentjs, others are not support
   }
 }
 

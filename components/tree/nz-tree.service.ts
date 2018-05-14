@@ -1,10 +1,13 @@
 import { Injectable } from '@angular/core';
 
-import { NzFormatEmitEvent, NzFormatPosition, NzTreeNodeOptions } from './interface';
+import { NzFormatEmitEvent } from './interface';
 import { NzTreeNode } from './nz-tree-node';
 
 @Injectable()
 export class NzTreeService {
+  DRAG_SIDE_RANGE = 0.25;
+  DRAG_MIN_GAP = 2;
+
   selectedNode: NzTreeNode;
   targetNode: NzTreeNode;
   rootNodes: NzTreeNode[] = [];
@@ -16,14 +19,37 @@ export class NzTreeService {
    * init data to NzTreeNode
    * @param {any[]} root
    */
-  initTreeNodes(root: NzTreeNodeOptions[]): NzTreeNode[] {
-    this.rootNodes = [];
+  initCheckedStatus(childNode: NzTreeNode, defaultCheckedKeys: string[], nzCheckStrictly: boolean): void {
+    if (defaultCheckedKeys.indexOf(childNode.key) > -1) {
+      childNode.isChecked = true;
+      childNode.isAllChecked = true;
+      childNode.isHalfChecked = false;
+    }
+    if (childNode.getChildren()) {
+      childNode.getChildren().forEach((child) => {
+        // will change child status
+        if (!nzCheckStrictly && childNode.isChecked && !child.isDisabled && !child.isDisableCheckbox) {
+          child.isChecked = true;
+          child.isAllChecked = true;
+          child.isHalfChecked = false;
+        }
+        this.initCheckedStatus(child, defaultCheckedKeys, nzCheckStrictly);
+      });
+    }
+  }
+
+  initTreeNodes(root: NzTreeNode[], defaultCheckedKeys: string[] = [], nzCheckStrictly: boolean = false): NzTreeNode[] {
+    this.rootNodes = root;
     if (root.length > 0) {
       root.forEach((node) => {
-        const currentNode = new NzTreeNode(node);
-        this.initParentNode(currentNode);
-        this.rootNodes.push(currentNode);
+        this.initCheckedStatus(node, defaultCheckedKeys, nzCheckStrictly);
       });
+      if (!nzCheckStrictly) {
+        root.forEach((node) => {
+          this.initParentNode(node);
+        });
+        // should reset node status
+      }
     }
     return this.rootNodes;
   }
@@ -34,167 +60,13 @@ export class NzTreeService {
    * @returns {NzTreeNode}
    */
   initParentNode(node: NzTreeNode): void {
-    if (node.children.length === 0) {
+    if (node.getChildren().length === 0) {
       // until root
       this.checkTreeNodeParents(node);
     } else {
       node.children.forEach((child) => {
         this.initParentNode(child);
       });
-    }
-  }
-
-  setSelectedNode(node: NzTreeNode | null): void {
-    this.selectedNode = node;
-  }
-
-  getSelectedNode(): NzTreeNode | null {
-    return this.selectedNode;
-  }
-
-  // add node to select list
-  setSelectedNodeList(node: NzTreeNode, isMultiple: boolean): void {
-    if (isMultiple) {
-      let sIndex = -1;
-      this.selectedNodeList.forEach((cNode, index) => {
-        if (node.key === cNode.key) {
-          sIndex = index;
-        }
-      });
-      if (node.isSelected && sIndex === -1) {
-        this.selectedNodeList.push(node);
-      } else if (sIndex > -1) {
-        this.selectedNodeList.splice(sIndex, 1);
-      }
-    } else {
-      if (node.isSelected) {
-        this.selectedNodeList = [ node ];
-      } else {
-        this.selectedNodeList = [];
-      }
-    }
-  }
-
-  getSelectedNodeList(): NzTreeNode[] {
-    return this.selectedNodeList;
-  }
-
-  // add node to checkbox list
-  setCheckedNodeList(node: NzTreeNode): void {
-    let isExist = false;
-    this.checkedNodeList.forEach((cNode) => {
-      if (node.key === cNode.key && node.title === cNode.title) {
-        isExist = true;
-      }
-    });
-    if (node.isChecked && !isExist) {
-      this.checkedNodeList.push(node);
-    }
-    const removeChild = (rNode) => {
-      let rIndex = -1;
-      this.checkedNodeList.forEach((cNode, index) => {
-        if (rNode.key === cNode.key && rNode.title === cNode.title) {
-          rIndex = index;
-        }
-      });
-      if (rIndex > -1) {
-        this.checkedNodeList.splice(rIndex, 1);
-      }
-      rNode.children.forEach(child => {
-        removeChild(child);
-      });
-    };
-    this.rootNodes.forEach((rNode) => {
-      const loopNode = (lNode) => {
-        let cIndex = -1;
-        this.checkedNodeList.forEach((cNode, index) => {
-          if (lNode.key === cNode.key) {
-            cIndex = index;
-          }
-        });
-        if (lNode.isChecked) {
-          if (cIndex === -1) {
-            this.checkedNodeList.push(lNode);
-          }
-          // reset child state
-          lNode.children.forEach((child) => {
-            removeChild(child);
-          });
-        } else {
-          if (cIndex > -1) {
-            this.checkedNodeList.splice(cIndex, 1);
-          }
-          lNode.children.forEach(child => {
-            loopNode(child);
-          });
-        }
-      };
-      loopNode(rNode);
-    });
-  }
-
-  getCheckedNodeList(): NzTreeNode[] {
-    return this.checkedNodeList;
-  }
-
-  getMatchedNodeList(): NzTreeNode[] {
-    return this.matchedNodeList;
-  }
-
-  /**
-   * keep selected state if isMultiple is true
-   * @param {NzTreeNode} node
-   * @param {boolean} isMultiple
-   */
-  initNodeActive(node: NzTreeNode, isMultiple: boolean = false): void {
-    if (node.isDisabled) {
-      return;
-    }
-    const isSelected = node.isSelected;
-    if (!isMultiple) {
-      this.rootNodes.forEach((child) => {
-        this.resetNodeActive(child);
-      });
-    }
-    node.isSelected = !isSelected;
-    this.setSelectedNodeList(node, isMultiple);
-  }
-
-  resetNodeActive(node: NzTreeNode): void {
-    node.isSelected = false;
-    node.children.forEach((child) => {
-      this.resetNodeActive(child);
-    });
-  }
-
-  /**
-   * click checkbox
-   * @param {NzTreeNode} checkedNode
-   */
-  checkTreeNode(node: NzTreeNode, defaultValue?: boolean): void {
-    node.isChecked = typeof(defaultValue) === 'undefined' ? !node.isChecked : defaultValue;
-    node.isAllChecked = node.isChecked;
-    const isChecked = node.isChecked;
-    this.checkTreeNodeChildren(node, isChecked);
-    this.checkTreeNodeParents(node);
-    this.setCheckedNodeList(node);
-  }
-
-  /**
-   * reset child check state
-   * @param {NzTreeNode} node
-   * @param {boolean} value
-   */
-  checkTreeNodeChildren(node: NzTreeNode, value: boolean): void {
-    if (!node.isDisabled && !node.isDisableCheckbox) {
-      node.isChecked = value;
-      node.isAllChecked = value;
-      if (value) {
-        node.isHalfChecked = false;
-      }
-      for (const n of node.children) {
-        this.checkTreeNodeChildren(n, value);
-      }
     }
   }
 
@@ -222,6 +94,157 @@ export class NzTreeService {
         parentNode.isHalfChecked = false;
       }
       this.checkTreeNodeParents(parentNode);
+    }
+  }
+
+  setSelectedNode(node: NzTreeNode | null): void {
+    this.selectedNode = node;
+  }
+
+  getSelectedNode(): NzTreeNode | null {
+    return this.selectedNode;
+  }
+
+  // if node is clicked, add or remove node to select list
+  setSelectedNodeList(node: NzTreeNode, isMultiple: boolean): void {
+    if (isMultiple) {
+      const sIndex = this.selectedNodeList.findIndex(cNode => node.key === cNode.key);
+      if (node.isSelected && sIndex === -1) {
+        this.selectedNodeList.push(node);
+      } else if (sIndex > -1) {
+        this.selectedNodeList.splice(sIndex, 1);
+      }
+    } else {
+      if (node.isSelected) {
+        this.selectedNodeList = [ node ];
+      } else {
+        this.selectedNodeList = [];
+      }
+    }
+  }
+
+  getSelectedNodeList(): NzTreeNode[] {
+    return this.selectedNodeList;
+  }
+
+  /**
+   * merge checked nodes
+   * @param {NzTreeNode} node
+   */
+  setCheckedNodeListStrict(node: NzTreeNode): void {
+    if (node.isChecked && this.checkedNodeList.findIndex(cNode => (node.key === cNode.key)) === -1) {
+      this.checkedNodeList.push(node);
+    } else if (!node.isChecked && this.checkedNodeList.findIndex(cNode => (node.key === cNode.key)) > -1) {
+      // cancel checked
+      this.checkedNodeList.splice(this.checkedNodeList.findIndex(cNode => (node.key === cNode.key)), 1);
+    }
+  }
+
+  setCheckedNodeList(node: NzTreeNode): void {
+    if (node.isChecked && this.checkedNodeList.findIndex(cNode => (node.key === cNode.key)) === -1) {
+      this.checkedNodeList.push(node);
+    }
+    const removeChild = (rNode: NzTreeNode) => {
+      const rIndex = this.checkedNodeList.findIndex(cNode => (rNode.key === cNode.key));
+      if (rIndex > -1) {
+        this.checkedNodeList.splice(rIndex, 1);
+      }
+      rNode.children.forEach(child => {
+        removeChild(child);
+      });
+    };
+    // refresh tree nodes check state, merge child node checked
+    this.rootNodes.forEach((rNode: NzTreeNode) => {
+      const loopNode = (lNode: NzTreeNode) => {
+        const cIndex = this.checkedNodeList.findIndex(cNode => (lNode.key === cNode.key));
+        if (lNode.isChecked) {
+          if (cIndex === -1) {
+            this.checkedNodeList.push(lNode);
+          }
+          // reset child state
+          lNode.children.forEach((child) => {
+            removeChild(child);
+          });
+        } else {
+          if (cIndex > -1) {
+            this.checkedNodeList.splice(cIndex, 1);
+          }
+          lNode.children.forEach(child => {
+            loopNode(child);
+          });
+        }
+      };
+      loopNode(rNode);
+    });
+  }
+
+  /**
+   * return checked nodes
+   * @returns {NzTreeNode[]}
+   */
+  getCheckedNodeList(): NzTreeNode[] {
+    return this.checkedNodeList;
+  }
+
+  /**
+   * return search matched nodes
+   * @returns {NzTreeNode[]}
+   */
+  getMatchedNodeList(): NzTreeNode[] {
+    return this.matchedNodeList;
+  }
+
+  /**
+   * keep selected state if isMultiple is true
+   * @param {NzTreeNode} node
+   * @param {boolean} isMultiple
+   */
+  initNodeActive(node: NzTreeNode, isMultiple: boolean = false): void {
+    if (node.isDisabled) {
+      return;
+    }
+    const isSelected = node.isSelected;
+    if (!isMultiple) {
+      this.rootNodes.forEach((child) => {
+        this.resetNodeActive(child);
+      });
+    }
+    node.isSelected = !isSelected;
+    this.setSelectedNodeList(node, isMultiple);
+  }
+
+  // reset all nodes to unselected
+  resetNodeActive(node: NzTreeNode): void {
+    node.isSelected = false;
+    node.children.forEach((child) => {
+      this.resetNodeActive(child);
+    });
+  }
+
+  /**
+   * click checkbox
+   * @param {NzTreeNode} checkedNode
+   */
+  checkTreeNode(node: NzTreeNode): void {
+    this.checkTreeNodeChildren(node, node.isChecked);
+    this.checkTreeNodeParents(node);
+  }
+
+  /**
+   * reset child check state
+   * @param {NzTreeNode} node
+   * @param {boolean} value
+   */
+  checkTreeNodeChildren(node: NzTreeNode, value: boolean): void {
+    if (!node.isDisabled && !node.isDisableCheckbox) {
+      node.isChecked = value;
+      node.isAllChecked = value;
+      if (node.isChecked) {
+        node.isHalfChecked = false;
+      }
+      for (const n of node.children) {
+        this.checkTreeNodeChildren(n, value);
+      }
     }
   }
 
@@ -267,7 +290,7 @@ export class NzTreeService {
     const isSelectedRootNode = this.selectedNode.getParentNode();
     // remove the dragNode
     if (isSelectedRootNode) {
-      isSelectedRootNode.children.splice(isSelectedRootNode.children.indexOf(this.selectedNode), 1);
+      isSelectedRootNode.getChildren().splice(isSelectedRootNode.getChildren().indexOf(this.selectedNode), 1);
     } else {
       this.rootNodes.splice(this.rootNodes.indexOf(this.selectedNode), 1);
     }
@@ -296,6 +319,7 @@ export class NzTreeService {
       this.initParentNode(child);
     });
   }
+
   // reset node level
   resetNodeLevel(node: NzTreeNode): void {
     if (node.getParentNode()) {
@@ -313,35 +337,17 @@ export class NzTreeService {
    * @returns {number}
    */
   calcDropPosition(e: DragEvent): number {
-    const offsetTop = this.getOffset(e.srcElement as HTMLElement).top;
-    const offsetHeight = (e.srcElement as HTMLElement).offsetHeight;
-    const pageY = e.pageY;
-    const gapHeight = offsetHeight * 0.1; // TODO: remove hard code
-    if (pageY > offsetTop + offsetHeight * 0.9) {
+    const { clientY } = e;
+    const { top, bottom, height } = e.srcElement.getBoundingClientRect();
+    const des = Math.max(height * this.DRAG_SIDE_RANGE, this.DRAG_MIN_GAP);
+
+    if (clientY <= top + des) {
+      return -1;
+    } else if (clientY >= bottom - des) {
       return 1;
     }
-    if (pageY < offsetTop + gapHeight) {
-      return -1;
-    }
+
     return 0;
-  }
-
-  getOffset(ele: Element): NzFormatPosition {
-    if (!ele || !ele.getClientRects().length) {
-      return { top: 0, left: 0 };
-    }
-    const rect = ele.getBoundingClientRect();
-    if (rect.width || rect.height) {
-      const doc = ele.ownerDocument;
-      const win = doc.defaultView;
-      const docElem = doc.documentElement;
-
-      return {
-        top : rect.top + win.pageYOffset - docElem.clientTop,
-        left: rect.left + win.pageXOffset - docElem.clientLeft
-      };
-    }
-    return rect;
   }
 
   /**

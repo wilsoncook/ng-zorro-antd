@@ -15,13 +15,14 @@ subtitle: 树形控件
 
 | 参数 | 说明 | 类型 | 默认值 |
 | --- | --- | --- | --- |
-| nzTreeData | 元数据,单个节点结构参考NzTreeNode | array | \[] |
+| ngModel | 元数据,NzTreeNode数组,单个节点原始结构参考NzTreeNodeOptions | array | \[] |
 | nzCheckable | 节点前添加 Checkbox 复选框 | boolean | false |
 | nzShowExpand | 节点前添加展开图标 | boolean | true |
 | nzShowLine | 是否展示连接线 | boolean | false |
 | nzAsyncData | 是否异步加载(显示加载状态) | boolean | false |
 | nzDraggable | 设置节点可拖拽（IE>8） | boolean | false |
 | nzMultiple | 支持点选多个节点（节点本身） | boolean | false |
+| nzCheckStrictly | checkable状态下节点选择完全受控（父子节点选中状态不再关联） | boolean | false |
 | nzDefaultExpandAll | 默认展开所有树节点 | boolean | false |
 | nzDefaultExpandedKeys | 默认展开指定的树节点 | string\[] | \[] |
 | nzDefaultCheckedKeys | 默认选中复选框的树节点 | string\[] | \[] |
@@ -40,6 +41,8 @@ subtitle: 树形控件
 | nzOnDragLeave | dragleave 触发时调用 | EventEmitter<NzFormatEmitEvent\> | - |
 | nzOnDrop | drop 触发时调用 | EventEmitter<NzFormatEmitEvent\> | - |
 | nzOnDragEnd | dragend 触发时调用 | EventEmitter<NzFormatEmitEvent\> | - |
+| getCheckedNodeList | 获取组件 checkBox 被点击选中的节点 | NzTreeNode[] | [] |
+| getSelectedNodeList | 获取组件被选中的节点 | NzTreeNode[] | [] |
 
 ### NzTreeNodeOptions props
 
@@ -84,7 +87,7 @@ subtitle: 树形控件
 | key | key值 | string | NzTreeNodeOptions.key |
 | level | 层级(最顶层为0,子节点逐层加1) | number | number |
 | children | 子节点 | array<NzTreeNode\> | array<NzTreeNode\> |
-| treeOptions | 原始节点树结构 | NzTreeNodeOptions | NzTreeNodeOptions |
+| origin | 原始节点树结构(用户提供,用于展示额外信息) | NzTreeNodeOptions | - |
 | getParentNode | 获取父节点 | function | `NzTreeNode` 或 `null` |
 | isLeaf | 是否为叶子节点 | boolean |  `true` 或 `false` |
 | isExpanded | 是否已展开 | boolean | `true` 或 `false` |
