@@ -129,6 +129,7 @@ Check [this issue](https://github.com/NG-ZORRO/ng-zorro-antd/issues/2025) to rea
 ## 🤝 Contributing
 
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://github.com/NG-ZORRO/ng-zorro-antd/pulls)
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwilsoncook%2Fng-zorro-antd.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fwilsoncook%2Fng-zorro-antd?ref=badge_shield)
 
 We welcome all contributions. Please read our [CONTRIBUTING.md](https://github.com/NG-ZORRO/ng-zorro-antd/blob/master/CONTRIBUTING.md) first. You can submit any ideas as [pull requests](https://github.com/NG-ZORRO/ng-zorro-antd/pulls) or as [GitHub issues](https://github.com/NG-ZORRO/ng-zorro-antd/issues).
 
@@ -152,3 +153,6 @@ As always, we encourage experienced users to help those who are not familiar wit
 ## ☀️ License
 
 MIT
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fwilsoncook%2Fng-zorro-antd.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fwilsoncook%2Fng-zorro-antd?ref=badge_large)
